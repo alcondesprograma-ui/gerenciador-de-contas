@@ -3,6 +3,37 @@ import os
 import sys
 import stat
 import subprocess
+import importlib.util
+
+def verificar_e_instalar_dependencias():
+    print("🔍 Verificando dependências do sistema...")
+
+    # 1. Verificar e instalar Tkinter
+    if importlib.util.find_spec("tkinter") is None:
+        print("⚠️ 'tkinter' não encontrado. Tentando instalar...")
+        if sys.platform.startswith("linux"):
+            try:
+                subprocess.run(["sudo", "apt", "update"], check=True)
+                subprocess.run(["sudo", "apt", "install", "-y", "python3-tk"], check=True)
+                print("✅ 'tkinter' instalado com sucesso!")
+            except Exception as e:
+                print(f"❌ Erro ao instalar tkinter automaticamente: {e}")
+                print("Por favor, instale manualmente rodando: sudo apt install python3-tk")
+        else:
+            print("❌ 'tkinter' é obrigatório, mas não pôde ser instalado automaticamente no Windows.")
+
+    # 2. Verificar e instalar Matplotlib
+    if importlib.util.find_spec("matplotlib") is None:
+        print("⚠️ 'matplotlib' não encontrado. Instalando via pip...")
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "matplotlib"], check=True)
+            print("✅ 'matplotlib' instalado com sucesso!")
+        except Exception as e:
+            print(f"❌ Erro ao instalar matplotlib: {e}")
+            print("Por favor, instale manualmente rodando: pip install matplotlib")
+
+# Executa a verificação antes de criar o atalho
+verificar_e_instalar_dependencias()
 
 # Localiza a pasta atual onde o programa está salvo
 pasta_atual = os.path.dirname(os.path.abspath(__file__))
@@ -11,19 +42,16 @@ icone = os.path.join(pasta_atual, "icone.png")
 
 if sys.platform.startswith("win"):
     # ---------------- LÓGICA PARA WINDOWS ----------------
-    # Procura a pasta Desktop do usuário no Windows
     desktop = os.path.join(os.environ.get("USERPROFILE", ""), "Desktop")
     if not os.path.exists(desktop):
         desktop = os.path.join(os.environ.get("USERPROFILE", ""), "Área de Trabalho")
 
     caminho_atalho = os.path.join(desktop, "Gerenciador de Contas.lnk")
 
-    # Executável 'pythonw.exe' abre o app direto sem abrir o prompt de comando preto
     pythonw = os.path.join(sys.prefix, "pythonw.exe")
     if not os.path.exists(pythonw):
         pythonw = "pythonw.exe"
 
-    # Script VBScript temporário para criar o atalho nativo do Windows (.lnk)
     vbs_script = f'''
     Set WshShell = CreateObject("WScript.Shell")
     Set shortcut = WshShell.CreateShortcut("{caminho_atalho}")
@@ -55,6 +83,8 @@ else:
     desktop = os.path.expanduser("~/Área de trabalho")
     if not os.path.exists(desktop):
         desktop = os.path.expanduser("~/Desktop")
+    if not os.path.exists(desktop):
+        os.makedirs(desktop, exist_ok=True)
 
     caminho_atalho = os.path.join(desktop, "GerenciadorDeContas.desktop")
 
@@ -74,7 +104,6 @@ StartupNotify=true
         with open(caminho_atalho, "w", encoding="utf-8") as f:
             f.write(conteudo_desktop)
 
-        # Concede permissão de execução
         st = os.stat(caminho_atalho)
         os.chmod(caminho_atalho, st.st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
 
