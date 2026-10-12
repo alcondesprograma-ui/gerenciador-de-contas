@@ -17,7 +17,7 @@ Um sistema desktop leve, prático e intuitivo desenvolvido em **Python** para o 
 ---
 
 ## 📸 Captura de Tela
-<!-- ![Tela Principal do Gerenciador](print_app.jpg) -->
+![Tela Principal do Gerenciador](print_app.jpg)
 
 ---
 
