@@ -2,38 +2,43 @@
 import os
 import sys
 import stat
-import subprocess
 import importlib.util
 
-def verificar_e_instalar_dependencias():
+def verificar_dependencias():
     print("🔍 Verificando dependências do sistema...")
+    faltando = []
 
-    # 1. Verificar e instalar Tkinter
+    # 1. Checar Tkinter
     if importlib.util.find_spec("tkinter") is None:
-        print("⚠️ 'tkinter' não encontrado. Tentando instalar...")
-        if sys.platform.startswith("linux"):
-            try:
-                subprocess.run(["sudo", "apt", "update"], check=True)
-                subprocess.run(["sudo", "apt", "install", "-y", "python3-tk"], check=True)
-                print("✅ 'tkinter' instalado com sucesso!")
-            except Exception as e:
-                print(f"❌ Erro ao instalar tkinter automaticamente: {e}")
-                print("Por favor, instale manualmente rodando: sudo apt install python3-tk")
-        else:
-            print("❌ 'tkinter' é obrigatório, mas não pôde ser instalado automaticamente no Windows.")
+        faltando.append("tkinter")
 
-    # 2. Verificar e instalar Matplotlib
+    # 2. Checar Matplotlib
     if importlib.util.find_spec("matplotlib") is None:
-        print("⚠️ 'matplotlib' não encontrado. Instalando via pip...")
-        try:
-            subprocess.run([sys.executable, "-m", "pip", "install", "matplotlib"], check=True)
-            print("✅ 'matplotlib' instalado com sucesso!")
-        except Exception as e:
-            print(f"❌ Erro ao instalar matplotlib: {e}")
-            print("Por favor, instale manualmente rodando: pip install matplotlib")
+        faltando.append("matplotlib")
+
+    # Se faltar alguma dependência, avisa o utilizador e orienta como instalar
+    if faltando:
+        print("\n⚠️ DEPENDÊNCIAS FALTANTES DETETADAS!")
+        print("Para que o programa funcione corretamente, instale os pacotes necessários:\n")
+
+        if "tkinter" in faltando:
+            if sys.platform.startswith("linux"):
+                print(" 📌 Para instalar o Tkinter (Linux):")
+                print("    sudo apt update && sudo apt install python3-tk\n")
+            else:
+                print(" 📌 O Tkinter não foi encontrado no seu Python (Windows). Reinstale o Python marcando a opção 'tcl/tk'.\n")
+
+        if "matplotlib" in faltando:
+            print(" 📌 Para instalar o Matplotlib:")
+            print("    pip install matplotlib\n")
+
+        print("❌ Por favor, instale as dependências acima e execute este script novamente.")
+        sys.exit(1) # Encerra o script para não criar atalho de um app que não vai abrir
+
+    print("✅ Todas as dependências estão instaladas!\n")
 
 # Executa a verificação antes de criar o atalho
-verificar_e_instalar_dependencias()
+verificar_dependencias()
 
 # Localiza a pasta atual onde o programa está salvo
 pasta_atual = os.path.dirname(os.path.abspath(__file__))
@@ -68,6 +73,7 @@ if sys.platform.startswith("win"):
         with open(vbs_path, "w", encoding="utf-8") as f:
             f.write(vbs_script)
 
+        import subprocess
         subprocess.run(["cscript", "//Nologo", vbs_path], shell=True)
         if os.path.exists(vbs_path):
             os.remove(vbs_path)
